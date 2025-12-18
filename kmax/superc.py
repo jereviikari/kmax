@@ -7,6 +7,7 @@ from shutil import which
 from kmax.klocalizer import Klocalizer
 import subprocess
 import shutil
+import sys
 
 class SuperC:
   class SuperC_Exception(Exception):
@@ -610,7 +611,9 @@ class SyntaxAnalysis:
         prev_line_num = 0
         in_comment = False
         continued_preprocessor = False
+        # last_token = None
         for token, line_num in tokens_w_line_nums:
+            # sys.stderr.write(f"{line_num}:{token}\n")
             if len(token) < 1:
                 continue
             if line_num == prev_line_num:
@@ -625,13 +628,18 @@ class SyntaxAnalysis:
 
             # preprocessor check
             if (not in_comment) and (not in_quotes) and token[0] == '#':
+                # sys.stderr.write(f"JFKLDS\n")
                 in_preprocessor = True
+            # else:
+            #     sys.stderr.write(f"not preprocessor {in_comment} {in_quotes} {token[0]} {last_token}\n")
+
 
             # NOTE: this gets tricky.
             # 1. if we start quotes while already in a comment or preprocessor, then it's still a comment.
             # 2. if we start a comment or preprocessor while already in quotes, then it's still quotes.
 
             # invert the quote status whenever we reach a new quote
+            # this breaks because it doesn't account for escaped quotes
             if (not in_preprocessor) and (not in_comment) and ("\"" in token):
                 in_quotes = not in_quotes
 
@@ -673,6 +681,8 @@ class SyntaxAnalysis:
                 continued_preprocessor = False
 
             prev_line_num = line_num
+
+            # last_token = token
         return analyzed_tokens
 
     # taken from plocalizer/scripts/create_validation_conditions.py
@@ -700,6 +710,7 @@ class SyntaxAnalysis:
         # top the stack.
 
         for linenum in categorized_tokens:
+          # sys.stderr.write(f"{categorized_tokens[linenum]}\n")
           for i, token_to_type in enumerate(categorized_tokens[linenum]):
             # Get the token and its type
             assert len(token_to_type) == 1 #< One token mapped to its type.
@@ -748,8 +759,11 @@ class SyntaxAnalysis:
                 assert False
 
         # There must remain only one element, which is the dummy root
-        assert len(stack) == 1
-        return stack[0]
+        # assert len(stack) == 1
+        if len(stack) == 1:
+          return stack[0]
+        else:
+          raise Exception("unmatched conditional blocks")
     
     @staticmethod
     def get_conditional_blocks_of_file(srcfile_path: str) -> ConditionalBlock:
