@@ -118,6 +118,7 @@ struct linked_list {
   void *data;
 };
 
+void bconferror(char *msg);
 
 void
 add_config_var(char *var, enum symbol_type stype, char *def, struct linked_list *dep_list)
@@ -2061,7 +2062,7 @@ yyreturn:
 
 char *filename;
 
-bconf_parse(char *file)
+void bconf_parse(char *file)
 {
 	struct symbol *sym;
 	int i;
@@ -2104,7 +2105,7 @@ bconf_parse(char *file)
 	/* sym_set_change_count(1); */
 }
 
-bconf_test_lexer(char *file)
+void bconf_test_lexer(char *file)
 {
   int t;
 
@@ -2116,7 +2117,7 @@ bconf_test_lexer(char *file)
   }
 }
 
-bconferror(char *msg) {
+void bconferror(char *msg) {
   fprintf(stderr, "error:%s:%d: %s\n", filename, bconflineno, msg);
   exit(1);
 }
